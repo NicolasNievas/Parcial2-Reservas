@@ -1,0 +1,57 @@
+<div class="container mt-4">
+    <h2>Reservas</h2>
+    
+    <!-- Filtros -->
+    <form  class="row g-3 mb-4">
+      
+      <div class="col-md-6">
+        <label class="form-label">Buscar</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Buscar por empresa o código" 
+          [formControl]="searchTerm">
+      </div>
+    </form>
+
+
+    <!-- Tabla de Reservas -->
+    <div class="table-responsive" >
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Empresa</th>
+            <th>Lugar</th>
+            <th>Fecha</th>
+            <th>Personas</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(items of bookingsList; track $index){
+            <tr>
+              <td class="badge bg-secondary text-white"> {{items.booking.bookingCode}} </td>
+              <td> {{items.booking.companyName}} </td>
+              <td> {{items.venue?.name || 'No especificado'}} </td>
+              <td>
+                {{ items.booking.createdAt | date: 'yyyy-MM-dd' }}
+                <small class="d-block text-muted">
+                  {{ items.booking.startTime }} - {{ items.booking.endTime }}
+                </small>
+              </td>              
+              <td> {{items.booking.totalPeople}} </td>
+              <td> {{items.booking.totalAmount | currency}} </td>
+              <td>
+                <span [class]="getStatusBadgeClass(items.booking.status)">
+                  {{items.booking.status}}
+                </span>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+   
+    </div>
+  </div>

@@ -1,0 +1,239 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col">
+      <h2>Crear Nueva Reserva</h2>
+    </div>
+  </div>
+
+  <form class="mt-4" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Datos de la Empresa -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0">Datos de la Empresa</h3>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label required">Nombre de la Empresa</label>
+          <input type="text" class="form-control" formControlName="companyName" placeholder="Ingrese el nombre de la empresa">
+          @if (form.get('companyName')?.touched && form.get('companyName')?.invalid) {
+            @if (form.get('companyName')?.errors?.['required']) {
+              <small class="text-danger">El nombre de la empresa es requerido</small>
+            } @else {
+              <small class="text-danger">El nombre debe tener al menos 5 caracteres</small>
+            }
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Email Corporativo</label>
+          <input type="email" class="form-control" formControlName="companyEmail" placeholder="ejemplo@empresa.com">
+          @if (form.get('companyEmail')?.touched && form.get('companyEmail')?.invalid) {
+            @if (form.get('companyEmail')?.errors?.['required']) {
+              <small class="text-danger">El email es requerido</small>
+            } @else {
+              <small class="text-danger">Ingrese un email valido.</small>
+            }
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Teléfono de Contacto</label>
+          <input type="tel" class="form-control" formControlName="contactPhone" placeholder="+54 11 1234-5678">
+          @if (form.get('contactPhone')?.touched && form.get('contactPhone')?.invalid) {
+            @if (form.get('contactPhone')?.errors?.['required']) {
+              <small class="text-danger">El teléfono de contacto es requerido</small>
+            } @else {
+              <small class="text-danger">Ingrese un teléfono válido</small>
+            }
+          }        
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles del Evento -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0">Detalles del Evento</h3>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label required">Lugar del Evento</label>
+          <select class="form-select" formControlName="venueId">
+            <option value="">Seleccione un lugar</option>
+            @for (venue of venues; track venue.id) {
+              <option [value]="venue.id">{{ venue.name }} (capacidad: {{venue.capacity}})</option>
+            }
+          </select>
+          @if (form.get('venueId')?.touched && form.get('venueId')?.invalid) {
+            <small class="text-danger">Seleccione un lugar para el evento</small>
+          }
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label required">Fecha</label>
+              <input type="date" class="form-control" formControlName="eventDate">
+              @if (form.get('eventDate')?.touched && form.get('eventDate')?.invalid) {
+                @if (form.get('eventDate')?.errors?.['required']) {
+                  <small class="text-danger">Seleccione una fecha</small>
+                } 
+                @else if (form.get('eventDate')?.errors?.['unavailable']) {
+                  <small class="text-danger">El lugar no está disponible en la fecha seleccionada</small>
+                }
+              }
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label required">Hora de Inicio</label>
+              <input type="time" class="form-control" formControlName="startTime">
+              @if (form.get('startTime')?.touched && form.get('startTime')?.invalid) {
+                <small class="text-danger">Seleccione una hora de inicio</small>
+              }
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label required">Hora de Finalización</label>
+              <input type="time" class="form-control" formControlName="endTime">
+              @if (form.get('endTime')?.touched && form.get('endTime')?.invalid) {
+                <small class="text-danger">Seleccione una hora de finalización</small>
+              }
+              @if (form.hasError('invalidTimeRange', 'endTime')) {
+                <small class="text-danger">La hora de finalización debe ser posterior a la hora de inicio</small>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Cantidad Total de Personas</label>
+          <input type="number" class="form-control" formControlName="totalPeople">
+          @if (form.get('totalPeople')?.touched && form.get('totalPeople')?.invalid) {
+            <small class="text-danger">Ingrese una cantidad válida de personas</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicios Adicionales -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h3 class="h5 mb-0">Servicios Adicionales</h3>
+        <button type="button" class="btn btn-light btn-sm" (click)="addServicio()">
+          + Agregar Servicio
+        </button>
+      </div>
+      <div class="card-body">
+        <div formArrayName="services">
+          @for (servicio of services.controls; track $index) {
+            <div [formGroupName]="$index" class="border rounded p-3 mb-3 position-relative">
+              <button type="button" class="btn-close position-absolute top-0 end-0 m-2" (click)="eliminarServicio($index)"></button>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label required">Tipo de Servicio</label>
+                    <select class="form-select" formControlName="serviceId">
+                      <option value="">Seleccione un servicio</option>
+                      @for (service of servicesList; track service.id) {
+                        <option [value]="service.id">{{ service.name }}</option>
+                      }
+                    </select>
+                    @if (servicio.get('serviceId')?.touched && servicio.get('serviceId')?.invalid) {
+                      <small class="text-danger">Seleccione un tipo de servicio</small>
+                    }
+                  </div>
+                </div>
+    
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label required">Cantidad de Personas</label>
+                    <input type="number" class="form-control" formControlName="quantity">
+                    @if (servicio.get('quantity')?.touched && servicio.get('quantity')?.invalid) {
+                      <small class="text-danger">Ingrese una cantidad mínima de 10 personas</small>
+                    }
+                  </div>
+                </div>
+              </div>
+    
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label required">Hora de Inicio</label>
+                    <input type="time" class="form-control" formControlName="startTime">
+                    @if (servicio.get('startTime')?.touched && servicio.get('startTime')?.invalid) {
+                      <small class="text-danger">Seleccione una hora de inicio</small>
+                    }
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label required">Hora de Finalización</label>
+                    <input type="time" class="form-control" formControlName="endTime">
+                    @if (servicio.get('endTime')?.touched && servicio.get('endTime')?.invalid) {
+                      <small class="text-danger">Seleccione una hora de finalización</small>
+                    }
+                    @if (servicio.hasError('invalidTimeRange')) {
+                      <small class="text-danger">La hora de finalización debe ser posterior a la hora de inicio</small>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          @if (form.hasError('duplicateService', 'services')) {
+            <div class="alert alert-danger">El servicio ya ha sido seleccionada</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de Costos -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0">Resumen de Costos</h3>
+      </div>
+      <div class="card-body">
+        <div class="row mb-2">
+          <div class="col">
+            <h6>Subtotal:</h6>
+          </div>
+          <div class="col-auto">
+            <h6>{{ totalAmount | currency }}</h6>
+          </div>
+        </div>
+        @if (discount > 0) {
+        <div class="row mb-2 text-success">
+          <div class="col">
+            <h6>Descuento (15%):</h6>
+            <small>¡Descuento aplicado por grupo mayor a 100 personas!</small>
+          </div>
+          <div class="col-auto">
+            <h6>-{{ discount | currency }}</h6>
+          </div>
+        </div>
+        }
+
+        <hr>
+
+        <div class="row">
+          <div class="col">
+            <h5 class="mb-0">Total Final:</h5>
+          </div>
+          <div class="col-auto">
+            <h5 class="mb-0">{{ finalAmount | currency }}</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón Submit -->
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary btn-lg">
+        Crear Reserva
+      </button>
+    </div>
+  </form>
+</div>
+
